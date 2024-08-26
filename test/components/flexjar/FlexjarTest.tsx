@@ -1,10 +1,10 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import nock from 'nock';
+// import nock from 'nock';
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { Flexjar } from '@/components/flexjar/Flexjar';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { defaultErrorTexts } from '@/api/errors';
 import { FlexjarFeedbackDTO } from '@/data/flexjar/useFlexjarFeedback';
 import { StoreKey } from '@/hooks/useLocalStorageState';
@@ -13,7 +13,8 @@ import { AktivEnhetContext } from '@/context/aktivEnhet/AktivEnhetContext';
 import { testQueryClient } from '../../testQueryClient';
 import { veiledereQueryKeys } from '@/data/veiledereQueryHooks';
 import { veilederMock } from '../../../mock/syfoveileder/veilederMock';
-import { stubFlexjarApiError, stubFlexjarApiOk } from '../../stubs/stubFlexjar';
+// import { stubFlexjarApiError, stubFlexjarApiOk } from '../../stubs/stubFlexjar';
+import axios from 'axios';
 
 let queryClient: QueryClient;
 
@@ -48,7 +49,7 @@ describe('Flexjar', () => {
     );
   });
   afterEach(() => {
-    nock.cleanAll();
+    vi.restoreAllMocks();
     localStorage.setItem(StoreKey.FLEXJAR_ARENABRUK_FEEDBACK_DATE, '');
   });
 
@@ -96,7 +97,9 @@ describe('Flexjar', () => {
 
   it('sends tilbakemelding when radio selected', async () => {
     renderFlexjar();
-    stubFlexjarApiOk();
+    // stubFlexjarApiOk();
+    // TODO: Proof of concept for å bruke vitest, rydd opp nock etterpå
+    vi.spyOn(axios, 'post').mockResolvedValue({ response: { status: 200 } });
 
     const radio = screen.getByRole('radio', { name: 'Ja' });
     fireEvent.click(radio);
@@ -112,7 +115,8 @@ describe('Flexjar', () => {
 
   it('does not send tilbakemelding when error', async () => {
     renderFlexjar();
-    stubFlexjarApiError();
+    // stubFlexjarApiError();
+    vi.spyOn(axios, 'post').mockRejectedValue({ response: { status: 500 } });
 
     const radio = screen.getByRole('radio', { name: 'Ja' });
     fireEvent.click(radio);
